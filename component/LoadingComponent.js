@@ -1,63 +1,78 @@
 import React from 'react';
-import { StyleSheet, Text, View, ActivityIndicator, FlatList } from 'react-native';
-
-export const getNews = async function (props) {
-    const news = await fetch(
-        'https://newsapi.org/v2/top-headlines?sources=google-news&apiKey=3f72e8032a804760b7f08ba98fa711f8'
-    );
-    return news.json();
-}
+import { StyleSheet, Text, View, FlatList, Linking } from 'react-native';
+import moment from 'moment';
+import { Card, Button } from 'react-native-elements';
 
 export const News = function (props) {
-    console.log(props);
     return (
-        <View style={styles.container}>
-            <FlatList
-                data={props.news}
-                renderItem={renderArticleItem}
-                keyExtractor={item => item.title}
-            />
-        </View>
+        <FlatList
+            data={props.news}
+            renderItem={renderArticleItem}
+            keyExtractor={item => item.title}
+            ListFooterComponent={props.renderFooter}
+            onEndReached={props.getNews}
+            onEndReachedThreshold={0.5}
+        />
     );
 }
 
-const renderArticleItem = ({ item }) => {
-    console.log(item, "hello");
-    // return (
-    //     <Card title={item.title} image={item.urlToImage}>
-    //         <View style={styles.row}>
-    //             <Text style={styles.label}>Source</Text>
-    //             <Text style={styles.info}>{item.source.name}</Text>
-    //         </View>
-    //         <Text style={styles}>{item.content}</Text>
-    //         <View style={styles.row}>
-    //             <Text style={styles.label}>Published</Text>
-    //             <Text style={styles.info}>
-    //                 {moment(item.publishedAt).format('LLL')}
-    //             </Text>
-    //         </View>
-    //         <Button icon={<Icon />} title="Read more" backgroundColor="#03A9F4" />
-    //     </Card>
-    // );
+const onPress = url => {
+    Linking.canOpenURL(url).then(supported => {
+        if (supported) {
+            Linking.openURL(url);
+        } else {
+            console.log(`Don't know how to open URL: ${url}`);
+        }
+    });
 };
 
+const renderArticleItem = ({ item }) => {
+    return (
+        // urlToImage
+        <Card title={item.title} image={{ uri: item.urlToImage }}>
+            <View style={styles.row}>
+                <Text style={styles.label}>Source</Text>
+                <Text style={styles.info}>{item.source.name}</Text>
+            </View>
+            <Text>{item.content}</Text>
+            <View style={styles.row}>
+                <Text style={styles.label}>Published</Text>
+                <Text style={styles.info}>
+                    {moment(item.publishedAt).format('LLL')}
+                </Text>
+            </View>
+            <Button
+                title="Read more"
+                backgroundColor="#03A9F4"
+                onPress={() => onPress(item.url)}
+            />
+        </Card>
+    );
+};
+
+export const renderViewMore = () => {
+    return (
+        <Text onPress={onPress}>View more</Text>
+    )
+}
+
+export const renderViewLess = () => {
+    return (
+        <Text onPress={onPress}>View less</Text>
+    )
+}
+
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#fff',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    containerFlex: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center'
-    },
     container: {
         flex: 1,
         marginTop: 40,
         alignItems: 'center',
         backgroundColor: '#fff',
+        justifyContent: 'center'
+    },
+    containerFlex: {
+        flex: 1,
+        alignItems: 'center',
         justifyContent: 'center'
     },
     header: {
